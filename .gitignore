@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+!.env.example
+!.env.mysql.example
+/src/generated/prisma/
+/playwright-report/
+/test-results/
+/prisma/auth.generated.prisma
