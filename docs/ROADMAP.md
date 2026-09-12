@@ -5,25 +5,38 @@
 2. **Concluída — Banco e autenticação:** disponibilizar MySQL 8.4 LTS, preencher ambiente,
    revisar modelos de autenticação, aplicar migration autorizada e testar
    persistência de sessão, cadastro, login e logout. Criar telas nessa fase.
-3. **Próxima — Contas e categorias:** aprovar o modelo financeiro e implementar operações
-   privadas com validação, sessão e propriedade dos registros.
-4. **Transações:** implementar movimentações, precisão monetária, datas civis e
-   regras de relacionamento com contas e categorias.
-5. **Dashboard:** consolidar o mês e adicionar gráficos Recharts acessíveis.
+3. **Concluída — Contas e categorias:** modelo financeiro aprovado; operações
+   privadas implementadas com validação, sessão, propriedade e arquivamento.
+4. **Concluída — Lançamentos:** receitas, despesas e transferências internas com
+   precisão monetária, datas civis, propriedade, edição e remoção reversível.
+5. **Em andamento — Dashboard:** resumo mensal, navegação entre meses, saldo
+   transportado e correções separadas estão implementados e validados no MySQL.
+   Gráficos Recharts acessíveis ficam para o próximo refinamento.
 6. **Testes de segurança e isolamento:** aprofundar cenários entre usuários,
    entradas inválidas, acesso indevido, sessão expirada e revogação. Validação e
    isolamento já são exigências desde a primeira operação privada.
 7. **Refinamento visual:** aperfeiçoar acessibilidade, responsividade e estados
    de interação após estabilizar o comportamento.
 
-A fundação e a fase 2 estão validadas. O ambiente local usa MySQL 8.4.12 LTS;
-cadastro, entrada, saída, sessão, isolamento entre usuários e expiração passaram
-no E2E real. A migration inicial contém somente autenticação e está aplicada.
+As quatro primeiras fases estão validadas no MySQL 8.4.12 local. A fase 3 usa o
+modelo `FinancialAccount`, BRL, saldo de abertura em `DECIMAL(19,2)`, data civil,
+tipos explícitos e categorias de receita/despesa. Contas e categorias pertencem
+ao usuário autenticado, possuem unicidade dentro desse proprietário e podem ser
+arquivadas e restauradas. A segunda migration foi revisada e aplicada ao banco
+local confirmado. Não houve publicação.
 
-Antes de iniciar a fase 3, devem ser decididos e documentados: nome do modelo de
-conta financeira para evitar colisão com `Account` do Better Auth; moeda única ou
-múltiplas moedas; tipos e estados de conta; saldo inicial ou derivado; categorias
-de receita/despesa; regras de unicidade, arquivamento e exclusão. Somente depois
-virão schema, migration revisada, operações privadas e testes de propriedade.
+Na fase 4, valores são positivos e o tipo determina o efeito de receita ou despesa.
+Transferências têm origem e destino distintos e efeito total zero. Categorias são
+opcionais e precisam ter a mesma natureza do lançamento. Registros podem ser
+editados e removidos de forma reversível. Referências arquivadas permanecem no
+histórico, mas precisam ser restauradas antes de uma edição.
 
-As fases financeiras ainda não foram iniciadas. Não houve publicação.
+O dashboard usa o saldo inicial no primeiro mês e carrega o fechamento nos meses
+seguintes. Saldo inicial, ajustes, receitas, despesas e saldo final aparecem em
+linhas separadas. A correção registra a diferença sem reescrever lançamentos. O
+formulário de conta apresenta identificação e saldo inicial em duas etapas, e os
+campos monetários exibem reais durante a digitação. Cartão de crédito continua
+adiado até o desenho próprio de faturas e passivos.
+
+As transações e transferências desse roadmap são registros para controle pessoal.
+O projeto não executará movimentação de dinheiro, pagamentos ou serviços bancários.

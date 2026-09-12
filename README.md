@@ -1,9 +1,14 @@
 # Controle Financeiro
 
-Aplicação financeira pessoal em desenvolvimento. A fundação e as telas de
-cadastro, entrada e saída estão implementadas, com uma área protegida pela sessão.
-O fluxo foi validado em MySQL 8.4 LTS. Não há contas financeiras, categorias,
-transações ou dashboard.
+Aplicação financeira pessoal em desenvolvimento. Cadastro, entrada, saída,
+contas financeiras, categorias e lançamentos estão implementados em uma área
+protegida pela sessão. O fluxo foi validado em MySQL 8.4 LTS. O dashboard pertence
+à próxima fase.
+
+O produto é um organizador de informações financeiras pessoais. Ele registra os
+dados informados pelo usuário e calcula visões para acompanhamento. Não mantém
+dinheiro, não executa pagamentos ou transferências e não se conecta a instituições
+financeiras nesta etapa.
 
 ## Executar sem banco
 
@@ -97,29 +102,31 @@ podman run --detach --name controle-financeiro-mysql --restart=unless-stopped \
   container-registry.oracle.com/mysql/community-server:8.4@sha256:7dcc4add9183664de3a214daf85a50c3ba6cccfd7534f700b6561bf5b41885be
 ```
 
-A migration `20260910000000_auth` foi aplicada após confirmar o banco vazio. Ela
-criou User, Session, Account e Verification do Better Auth, além do histórico do
-Prisma. Account é credencial de autenticação, não conta financeira. Migrations
-futuras continuam exigindo revisão do SQL e confirmação do destino; não use reset.
+Quatro migrations estão aplicadas. Elas criam os modelos Better Auth, contas,
+categorias, lançamentos e transferências internas, além de ajustar as cascatas de
+remoção integral do usuário. `Account` continua sendo credencial de autenticação.
+Não use reset; toda migration futura continua exigindo revisão do SQL e confirmação
+do destino.
 
 A conexão configura o driver e a sessão MySQL em UTC. Para acesso remoto, revise
 TLS e certificados com o administrador; não desative a validação TLS.
 
-O E2E de autenticação inicia um servidor de desenvolvimento separado na porta
+O E2E com banco inicia um servidor de desenvolvimento separado na porta
 3101, com as URLs de autenticação e pública ajustadas somente nesse processo.
 Usa o banco de desenvolvimento indicado pelo `.env`, exige MySQL 8.4, cria dois
 usuários com identificadores aleatórios e remove somente esses usuários e seus
-registros relacionados ao terminar. Também expira uma sessão criada pelo próprio
-teste. Não execute essa suíte em uma base de produção. Os testes comuns e o smoke
-de produção não precisam de conexão; a suíte de banco é um comando separado.
-O teste passou no MySQL local. O HTTP de desenvolvimento não valida a entrega de
-cookies Secure por uma infraestrutura HTTPS.
+registros relacionados ao terminar. Valida contas, categorias, lançamentos,
+transferências internas, saldos derivados, precisão decimal, data civil, edição,
+remoção reversível e isolamento. Também expira uma sessão criada pelo próprio
+teste. Não execute essa suíte em produção. Os testes comuns e o smoke não precisam
+de conexão. O HTTP local não comprova cookies Secure.
 
 Os formulários usam o cliente oficial Better Auth e seu Route Handler. A validação
 Zod acontece no servidor antes do cadastro/login; senhas novas exigem 12 a 128
-caracteres. A página `/area` consulta a sessão no servidor e expõe apenas nome e
-e-mail do usuário autenticado. Não há recuperação de senha nem verificação de
-e-mail nesta fase.
+caracteres. A página `/area` consulta a sessão no servidor, expõe apenas nome e
+e-mail e dá acesso a `/contas`, `/categorias` e `/lancamentos`. Todas as operações
+validam Zod, derivam o usuário da sessão e filtram alterações pelo proprietário.
+Não há recuperação de senha nem verificação de e-mail nesta fase.
 
 A geração do Better Auth usa `prisma/auth.config.ts`, configuração exclusiva do
 CLI que compartilha as opções de autenticação do servidor, sem banco nem segredos.
@@ -149,9 +156,15 @@ comando offline; a configuração real do servidor exige URL e segredo válidos.
   Todos os pacotes declarados diretamente são estáveis e exatos.
 - shadcn/ui usa o preset neutro Radix Nova, somente button/input/label/card. O helper
   `cn` é importado do pacote oficial gerado pelo CLI; não há `utils.ts` nem barrel.
-- Fontes do sistema permitem build sem baixar fontes do Google. A feature `auth`
-  contém os formulários usados nesta etapa; `money.ts`, `dates.ts` e features
-  financeiras serão criados quando houver uso real.
+- Fontes do sistema permitem build sem baixar fontes do Google. Valores financeiros
+  são normalizados e formatados como strings por `money.ts`, sem passar por ponto
+  flutuante. Datas financeiras trafegam no formato `AAAA-MM-DD`.
+- A moeda desta fase é BRL. Cartão de crédito aguarda um modelo próprio de fatura,
+  vencimento, fechamento, limite e passivo. Contas e categorias são arquivadas,
+  sem exclusão destrutiva pela interface.
+- Lançamentos armazenam valores positivos; receita ou despesa define seu efeito no
+  saldo. Transferências alteram somente as duas contas cadastradas e têm efeito
+  total zero. Remoções são reversíveis e deixam o registro histórico disponível.
 
 Consulte [arquitetura](docs/ARCHITECTURE.md), [domínio](docs/DOMAIN.md),
 [roadmap](docs/ROADMAP.md) e [relatório de validação](docs/VALIDATION.md).

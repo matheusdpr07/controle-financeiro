@@ -1,4 +1,331 @@
-# Validação da fundação, dependências e autenticação — 10/09/2026
+# Validação da fundação, dependências, domínio e interface — 12/09/2026
+
+## Dashboard mensal, saldo inicial e diagnóstico de autenticação
+
+A área autenticada agora oferece onboarding quando ainda não existem contas e um
+relatório quando o controle já foi iniciado. O cadastro de conta foi dividido em
+identificação e saldo inicial. Saldo de abertura, lançamentos, transferências e
+correções usam um campo compartilhado que apresenta reais durante a digitação e
+envia uma string decimal normalizada.
+
+O relatório aceita `?month=AAAA-MM`, navega entre meses e apresenta saldo inicial,
+ajustes, receitas, despesas e saldo final. O primeiro mês parte do saldo informado
+na conta. Nos meses seguintes, o fechamento anterior é transportado por cálculo.
+Uma correção preserva saldo esperado, saldo real e diferença assinada em
+`BalanceAdjustment`; a diferença aparece separadamente e não modifica lançamentos.
+Correções exigem sessão, conta ativa do mesmo usuário e mês atual ou passado.
+
+O schema e o SQL de `20260912000000_monthly_balance_adjustments` foram revisados e
+aplicados após autorização explícita. A migration cria somente
+`balance_adjustment`, com três `DECIMAL(19,2)`, mês em `DATE`, unicidade por conta e
+mês, índice por usuário e mês e relações em cascata. A inspeção no
+`information_schema` confirmou colunas, índices e as duas relações com
+`ON DELETE CASCADE`. `prisma migrate status` informou o banco atualizado.
+
+### Investigação de `src/features/auth` e logs
+
+O arquivo real `.next/dev/logs/next-development.log` registrou a ausência da tabela
+`balance_adjustment` antes da aplicação da migration. Após a aplicação, o erro não
+se repetiu durante o E2E completo. As entradas posteriores são mensagens do React
+DevTools e um aviso de senha inválida, resultado esperado do cenário que testa
+credenciais incorretas. A busca ampla anterior também alcançava bundles compilados
+que incluem identificadores e textos como `error` e `warn`; eles não representam
+eventos do servidor. O aviso antigo de hidratação surgiu durante uma captura
+temporária em que o Playwright alterou o estilo do cursor e não está presente no
+teste atual.
+
+Lint, TypeScript e os 21 testes direcionados de autenticação passaram. A suíte
+completa também preserva schemas, estados dos formulários, sessão, origem/CSRF,
+rate limiting e respostas HTTP. Não foi identificada uma falha atual em
+`src/features/auth`, portanto nenhum comportamento de autenticação foi alterado.
+
+### Validações desta etapa
+
+| Verificação               | Resultado                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| Formatação                | `npm run format:check` passou.                                               |
+| Lint                      | Passou sem avisos.                                                           |
+| Typecheck                 | Passou com tipos do Next.js e TypeScript estrito.                            |
+| Vitest                    | 87 testes passaram em 19 arquivos.                                           |
+| Testes direcionados auth  | 21 testes passaram em 4 arquivos.                                            |
+| Prisma validate/generate  | Passaram com Prisma 7.10.0.                                                  |
+| Prisma migrate status     | Cinco migrations aplicadas; banco atualizado.                                |
+| Build padrão              | Turbopack bloqueado por `EPERM` ao abrir porta interna durante o PostCSS.    |
+| Build de produção         | Webpack passou e gerou as nove rotas.                                        |
+| Playwright público        | 3 testes passaram no Chromium.                                               |
+| Playwright com MySQL      | 1 fluxo completo passou em 8,1 segundos.                                     |
+| Audit completo e omit=dev | Zero vulnerabilidades conhecidas em ambos.                                   |
+| npm ls --all              | Árvore válida; dependências opcionais ausentes não produziram erro de saída. |
+| git diff --check          | Passou.                                                                      |
+
+O build Webpack precisou desativar temporariamente `useTypeScriptCli` porque o
+Next.js não interpretou a saída de `tsc --showConfig` neste ambiente. A opção foi
+removida de `next.config.ts` depois do build. O código final não contém esse
+contorno. O E2E autenticado cobre a criação em duas etapas, ajuste mensal,
+persistência decimal, isolamento, logout e expiração. Os usuários temporários
+foram removidos ao final. Não houve instalação ou troca de dependências, commit,
+push ou deploy.
+
+## Identidade visual em todas as telas atuais
+
+A identidade aprovada na página inicial agora também atende `/entrar`,
+`/cadastro`, `/area`, `/contas`, `/categorias` e `/lancamentos`. A aplicação usa
+verde profundo, superfícies claras, tipografia do sistema, espaçamento amplo,
+cartões suaves e estados de foco visíveis. Nenhuma imagem ou dependência visual
+externa foi necessária; a própria página inicial serviu como referência aprovada,
+portanto não houve importação do Figma.
+
+As telas de autenticação usam uma composição dividida no desktop e uma coluna no
+celular. As telas privadas compartilham marca, saída e navegação com indicação da
+rota atual. A área inicial apresenta onboarding ou resumo mensal; contas,
+categorias e lançamentos usam formulários e listas com hierarquia visual
+consistente. Os fluxos, rótulos, regras financeiras, Server Actions, DTOs e
+verificações de sessão e propriedade foram preservados.
+
+Os controles compartilhados agora têm áreas de toque maiores, bordas e foco
+uniformes. Um componente de seleção elimina estilos divergentes entre os
+formulários. Os cartões distinguem receita, despesa e transferência apenas como
+informação de acompanhamento; a interface continua afirmando que nenhuma
+movimentação real de dinheiro acontece.
+
+### Conexão local após reinício do MySQL
+
+O E2E inicialmente falhou antes do primeiro cenário porque o contêiner MySQL
+estava parado. Depois de iniciar o mesmo contêiner 8.4.12, a porta `127.0.0.1:3306`
+respondeu e os logs confirmaram o servidor pronto, mas o MariaDB Connector recusou
+o primeiro login `caching_sha2_password` com `ER_CANNOT_RETRIEVE_RSA_KEY`.
+
+A URL usada pelo Prisma agora permite a recuperação da chave RSA somente quando o
+host é `localhost`, `127.0.0.1` ou `::1`. Conexões remotas não recebem essa opção
+automaticamente. A mesma função prepara a conexão da aplicação e do E2E, mantendo
+o fuso `+00:00`. A configuração é compatível com o objeto ou a URL aceitos pelo
+[adapter oficial do Prisma](https://www.prisma.io/docs/orm/overview/databases/mysql)
+e com a opção documentada pelo
+[MariaDB Connector/Node.js](https://mariadb.com/docs/connectors/mariadb-connector-nodejs/node-js-connection-options).
+Nenhuma migration foi executada e nenhuma credencial foi exibida ou alterada.
+
+### Validações desta entrega
+
+| Verificação               | Resultado                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| Inspeção desktop          | `/area`, `/contas` e `/categorias` revisadas em 1280 × 720.                          |
+| Inspeção móvel            | `/area`, `/contas` e `/lancamentos` revisadas em 390 × 844.                          |
+| Formatação                | `npm run format:check` passou.                                                       |
+| Lint                      | Passou sem avisos.                                                                   |
+| Typecheck                 | Passou com tipos do Next.js e TypeScript estrito.                                    |
+| Vitest                    | 73 testes passaram em 13 arquivos.                                                   |
+| Build de produção         | Passou com Webpack nas nove rotas; o Turbopack encontrou bloqueio local.             |
+| Playwright público        | 3 testes passaram, incluindo autenticação pública e celular.                         |
+| Playwright com MySQL      | 1 fluxo completo passou depois da correção de conexão local.                         |
+| Audit completo e omit=dev | Zero vulnerabilidades conhecidas em ambos.                                           |
+| npm ls --all              | Árvore válida, sem ELSPROBLEMS.                                                      |
+| Comentários manuscritos   | Nenhum foi acrescentado aos arquivos de código.                                      |
+| Dependências e migrations | Nenhuma dependência foi instalada; a migration mensal foi aplicada após autorização. |
+| git diff --check          | Passou.                                                                              |
+
+O build padrão do Next.js 16 não concluiu porque o processo auxiliar do
+Turbopack tentou abrir uma porta durante o processamento do CSS e recebeu
+`EPERM`, inclusive após autorização fora do sandbox. O build suportado com
+`next build --webpack` compilou, verificou os tipos, gerou as páginas estáticas e
+registrou `/area`, `/categorias`, `/contas` e `/lancamentos` como rotas dinâmicas.
+A opção temporária que contornou a criação de um subprocesso do TypeScript foi
+removida de `next.config.ts` depois da validação.
+
+Os testes dos shells foram escritos antes da implementação e comprovaram o estado
+vermelho e depois o verde. O problema de conexão também foi reproduzido primeiro
+no E2E e em uma conexão direta; um teste unitário protege a restrição da opção RSA
+a hosts locais. Não houve commit, push ou deploy.
+
+## Tela inicial pública
+
+A rota `/` deixou de apresentar uma mensagem técnica de fundação e passou a
+explicar o produto em linguagem direta. A página descreve o registro de contas,
+receitas, despesas e transferências e informa expressamente que a aplicação não
+se conecta a bancos, não guarda valores e não movimenta dinheiro. Cadastro e
+entrada permanecem como os únicos destinos de acesso.
+
+A composição usa HTML semântico e continua como Server Component estático, sem
+JavaScript interativo ou acesso ao MySQL. Há apenas um `h1`, seções identificadas,
+navegação nomeada, atalho para o conteúdo, foco visível e elementos decorativos
+ocultos da árvore de acessibilidade. Nenhuma dependência, imagem externa ou dado
+financeiro fictício foi acrescentado.
+
+### Validações da tela inicial
+
+| Verificação         | Resultado                                                                  |
+| ------------------- | -------------------------------------------------------------------------- |
+| Inspeção desktop    | Composição revisada em 1440 × 1000, incluindo a página completa.           |
+| Inspeção móvel      | Composição revisada em 390 × 844, sem rolagem horizontal.                  |
+| Formatação          | `npm run format:check` passou.                                             |
+| Lint                | Passou sem avisos.                                                         |
+| Typecheck           | Passou com tipos do Next.js e TypeScript estrito.                          |
+| Vitest              | 70 testes passaram em 11 arquivos.                                         |
+| Build de produção   | Passou; `/` permanece pré-renderizada como conteúdo estático.              |
+| Playwright dirigido | 2 testes passaram para desktop, links de acesso e responsividade em 390px. |
+| Playwright público  | 3 testes passaram no Chromium, incluindo a navegação da autenticação.      |
+| git diff --check    | Passou.                                                                    |
+
+O teste unitário agora verifica a proposta do produto e os destinos de cadastro
+e entrada. O Playwright também protege a ausência de estouro horizontal na
+largura móvel. O comentário residual do arquivo `next.config.ts` foi removido em
+conformidade com a regra do projeto. Não houve commit, push ou deploy.
+
+## Fase 4: lançamentos pessoais
+
+A fase acrescenta `/lancamentos` para registrar receitas, despesas e transferências
+internas. Esses registros existem somente para acompanhamento: não há custódia,
+pagamento, integração bancária ou movimentação real de dinheiro.
+
+`FinancialEntry` armazena descrição, tipo, valor positivo `DECIMAL(19,2)`, data
+`DATE`, conta obrigatória e categoria opcional. Receita soma e despesa subtrai do
+saldo. A categoria precisa ter a mesma natureza do lançamento. `FinancialTransfer`
+registra origem e destino distintos; reduz uma conta, aumenta a outra e conserva o
+total. Registros removidos usam `deletedAt`, podem ser restaurados e não participam
+dos saldos.
+
+Contas e categorias referenciadas precisam estar ativas, pertencer à sessão e ter
+data de abertura compatível. Criação, edição, remoção e restauração repetem a
+sessão na camada `server-only`. Toda alteração combina o ID do registro com o
+`userId`. O saldo atual das contas é derivado no servidor por agregações Prisma e
+operações `Decimal`, sem `number`.
+
+### Migrations e recuperação verificada
+
+`20260911010000_financial_entries_and_transfers` cria as duas tabelas, seus índices,
+chaves estrangeiras e restrições de valor positivo. A primeira tentativa também
+incluía um `CHECK` que comparava as contas da transferência. O MySQL recusou a chave
+estrangeira posterior com erro 3823, pois colunas usadas em `CHECK` não podem
+participar de ações referenciais.
+
+Como DDL do MySQL não reverteu automaticamente as tabelas criadas antes do erro,
+foram confirmados zero registros, removidas somente `financial_entry` e
+`financial_transfer`, e a tentativa foi marcada como revertida com
+`prisma migrate resolve --rolled-back`. O `CHECK` redundante foi retirado; a regra
+de contas distintas permanece obrigatória no Zod. A migration corrigida foi então
+aplicada com sucesso.
+
+O primeiro E2E identificou que a combinação inicial de `ON DELETE RESTRICT` com as
+cascatas do usuário impedia remover integralmente o usuário de teste. Uma prova
+isolada no mesmo MySQL confirmou suporte ao caminho de cascatas múltiplas. A
+migration `20260911020000_financial_record_cascades` alterou as três relações com
+contas para `ON DELETE CASCADE`. A interface não exclui contas; essa regra permite
+apagar todos os dados financeiros quando o próprio usuário for removido. O E2E
+seguinte comprovou a limpeza completa.
+
+### Código sem comentários manuscritos
+
+As cinco diretivas de ambiente existentes nos testes foram removidas. O Vitest
+agora separa os projetos Node e jsdom em `vitest.config.mts`, preservando o mesmo
+comportamento sem comentários nos testes. `AGENTS.md` registra a regra para o
+trabalho futuro. Arquivos gerados pelo Next e comentários de migrations aplicadas
+anteriormente foram preservados para não alterar artefatos gerados ou checksums.
+
+### Validações da fase 4
+
+| Verificação               | Resultado                                                            |
+| ------------------------- | -------------------------------------------------------------------- |
+| Prisma validate/generate  | Passaram com Prisma 7.10.0.                                          |
+| Prisma migrate status     | Quatro migrations aplicadas; banco atualizado.                       |
+| Formatação                | `npm run format:check` passou.                                       |
+| Lint                      | Passou sem avisos.                                                   |
+| Typecheck                 | Passou com tipos do Next.js e TypeScript estrito.                    |
+| Vitest                    | 70 testes passaram em 11 arquivos.                                   |
+| Build de produção         | Passou, incluindo `/lancamentos` como rota dinâmica.                 |
+| Playwright comum          | 2 testes passaram no Chromium sem banco.                             |
+| Playwright com MySQL      | 1 fluxo passou com lançamentos, transferências, saldos e isolamento. |
+| Audit completo e omit=dev | Zero vulnerabilidades conhecidas em ambos.                           |
+| npm ls --all              | Árvore válida, sem ELSPROBLEMS.                                      |
+| Dados temporários         | Zero usuários E2E, registros órfãos, lançamentos ou transferências.  |
+| Comentários manuscritos   | Nenhum nos arquivos de código mantidos manualmente.                  |
+| git diff --check          | Passou.                                                              |
+
+O E2E persiste um lançamento, comprova `DATE`, categoria, conta e a restrição de
+valor positivo no próprio MySQL. Também edita, remove e restaura o registro, cria
+uma transferência interna, verifica saldos exatos nas duas contas e confirma que
+um segundo usuário não enxerga esses dados. Cookie forjado, logout, replay, senha
+incorreta e sessão expirada continuam cobertos.
+
+Não foram adicionadas dependências ou overrides. Não houve ponto flutuante,
+integração bancária, `npm audit fix --force`, downgrade do Prisma, reset do banco,
+commit, push ou deploy.
+
+## Fase 3: contas e categorias
+
+A fase implementa as primeiras operações financeiras privadas. O modelo
+`FinancialAccount` evita colisão com `Account` do Better Auth. Cada conta possui
+nome, tipo, moeda BRL, saldo de abertura `DECIMAL(19,2)`, data civil `DATE` e
+arquivamento. Categorias pertencem ao usuário, têm natureza `INCOME` ou `EXPENSE`
+e também podem ser arquivadas. Cartão de crédito, transações e dashboard não fazem
+parte desta entrega.
+
+Essas contas representam agrupadores de acompanhamento preenchidos pelo usuário.
+A aplicação não oferece conta bancária, custódia, pagamento, transferência real
+ou integração com instituições financeiras.
+
+Nomes de conta são únicos por usuário; nomes de categoria são únicos por usuário
+e natureza. Não há exclusão destrutiva na interface. O saldo atual futuro será
+derivado do saldo de abertura e das transações, evitando uma segunda fonte de
+verdade. Valores são validados, persistidos e devolvidos como decimais exatos;
+nenhuma operação monetária usa ponto flutuante.
+
+As rotas `/contas` e `/categorias` são Server Components protegidos. Formulários
+interativos usam Server Actions pequenas e Zod no servidor. Cada operação de
+dados chama `requireUser()`. Leituras filtram o usuário, criações derivam `userId`
+exclusivamente da sessão e alterações combinam `id` e `userId` na mesma consulta.
+Campos extras enviados pelo navegador são descartados. As consultas retornam DTOs
+explícitos com dinheiro e data como strings, sem expor modelos Prisma.
+
+### Migration financeira aplicada no banco local confirmado
+
+O SQL de `20260911000000_financial_accounts_and_categories` foi comparado com o
+schema anterior e revisado antes da aplicação. A versão final contém somente a
+criação de `financial_account` e `category`, seus índices, unicidades e duas chaves
+estrangeiras para `user` com `ON DELETE CASCADE`. Não contém `DROP`, alterações nas
+tabelas do Better Auth, dados iniciais ou comandos de transação.
+
+Uma primeira diferença contra o banco sugeriu recriar dois índices já presentes
+em `account` e `session`. A comparação isolada entre o schema anterior e o atual
+confirmou que eles não pertenciam à nova alteração, e essas instruções espúrias
+foram removidas antes do deploy. `npx prisma migrate status` indicou apenas a nova
+migration pendente; `npx prisma migrate deploy` a aplicou e a verificação seguinte
+informou o banco atualizado.
+
+A inspeção de `information_schema` no MySQL confirmou `DECIMAL(19,2)`, `DATE`,
+enums, nulabilidade, chaves primárias, índices únicos e chaves estrangeiras. O E2E
+persistiu `12345678901234567.89` sem perda e leu a data como meia-noite UTC. A
+suíte criou somente dois usuários aleatórios e a cascata removeu seus registros de
+teste ao final.
+
+### Validações da fase 3
+
+Executadas com Node 24.20.0, npm 11.19.1, Prisma 7.10.0, MySQL 8.4.12 e Chromium
+153.0.8010.12:
+
+| Verificação               | Resultado                                                         |
+| ------------------------- | ----------------------------------------------------------------- |
+| npm ci                    | Passou, incluindo a geração do Prisma Client.                     |
+| Prisma validate/generate  | Passaram; duas migrations aplicadas e schema atualizado.          |
+| Formatação                | `npm run format:check` passou.                                    |
+| Lint                      | Passou sem avisos.                                                |
+| Typecheck                 | Passou com tipos do Next.js e TypeScript estrito.                 |
+| Vitest                    | 58 testes passaram em 10 arquivos.                                |
+| Build de produção         | Passou, incluindo as novas rotas privadas.                        |
+| Playwright comum          | 2 testes passaram no Chromium sem banco.                          |
+| Playwright com MySQL      | 1 fluxo passou com autenticação, contas, categorias e isolamento. |
+| Audit completo e omit=dev | Zero vulnerabilidades conhecidas em ambos.                        |
+| npm ls --all              | Árvore válida, sem ELSPROBLEMS.                                   |
+| git diff --check          | Passou.                                                           |
+
+Os testes unitários novos cobrem limites e formatação exata de dinheiro,
+calendário civil, descarte de `userId`/moeda externos e filtros de propriedade em
+criação, edição e arquivamento. O E2E verifica registro real, valor decimal no
+limite, data, conflito de nome, edição, arquivamento/restauração, dois usuários
+com categorias homônimas e ausência de dados cruzados. O fluxo anterior de cookie
+forjado, logout, replay, senha incorreta e expiração permanece coberto.
+
+Não foram adicionadas dependências ou overrides nesta fase. Não houve downgrade
+do Prisma, `npm audit fix --force`, reset do banco, dados fictícios permanentes,
+commit, push ou deploy. Os arquivos existentes não foram movidos.
 
 ## Fase 2: banco e autenticação
 
@@ -7,7 +334,7 @@ Fase autorizada após a revisão de dependências. Foram implementadas as telas
 sessão no servidor e usa DTO explícito. Os formulários usam o cliente HTTP oficial
 Better Auth, mantendo cookies, origem/CSRF e rate limiting. As entradas de
 cadastro/login são validadas por Zod em um hook no servidor, inclusive chamadas
-diretas à API. Não há funcionalidade financeira.
+diretas à API. Na entrega daquela fase ainda não havia funcionalidade financeira.
 
 Foi escolhido MySQL 8.4 LTS para preservar o contrato de suporte e facilitar uma
 atualização futura planejada. O bundle 26.7 Innovation encontrado em Downloads
@@ -118,9 +445,10 @@ estável mais recente da linha 7. Há **12 entradas transitivas com sufixo de
 pré-lançamento**, inventariadas abaixo e mantidas com justificativa. Audit limpo
 não significa ausência de pré-lançamentos nem comprovação de segurança absoluta.
 
-Na revisão de dependências nenhum arquivo foi movido e nenhuma migration foi
-aplicada. Considerando toda a entrega atual, não houve funcionalidade financeira,
-commit, push, publicação, deploy, sudo ou alteração de configuração global.
+Na revisão de dependências nenhum arquivo foi movido, nenhuma migration foi
+aplicada e não houve funcionalidade financeira. Nas fases posteriores, as
+migrations autorizadas e o domínio descrito acima foram acrescentados. Não houve
+push, publicação, deploy, sudo ou alteração de configuração global.
 A autorização para Recharts 3 inclui suas dependências internas Redux; não foi
 introduzida uma store de estado global na aplicação.
 
@@ -221,7 +549,8 @@ carregamento real, preservação/precedência de campos e a regressão de ciclos
 A geração/validação Prisma e toda a suíte também passam com o override instalado.
 Isso comprova compatibilidade para o uso examinado, **não uma certificação do
 mantenedor ou compatibilidade universal entre todas as APIs das linhas 7 e 8**.
-Não houve teste de banco, migração ou funcionamento integral do Studio.
+Naquela revisão isolada não houve teste de banco ou do Studio; as fases seguintes
+validaram Prisma e driver no MySQL, mas não o funcionamento integral do Studio.
 
 Revalidar o override quando a configuração ou a versão do Prisma mudar. Removê-lo
 quando uma versão autorizada do Prisma declarar uma dependência corrigida. O
@@ -236,7 +565,9 @@ Overrides anteriores preservados, sem criar novas substituições para eles:
 | lodash            | Chevrotain → 4.17.21; visx → ^4.17.21       | 4.18.1         |
 
 Essas versões foram mantidas da fundação para preservar correções anteriores.
-Persistência e comunicação dos drivers com um MySQL real ainda não foram testadas.
+Persistência e comunicação do adapter com o MySQL real foram exercitadas nas fases
+2 e 3. O pacote `mysql2`, usado pelo CLI Prisma, passou em validate, generate,
+status e migrate deploy.
 
 ## Recharts 3
 
@@ -436,31 +767,25 @@ Ubuntu 24.04 no Fedora. O CI remoto não foi disparado, porque não houve push.
 | docs/VALIDATION.md                      | Este relatório, substituindo os resultados antigos.   |
 
 Na revisão de dependências, fontes da aplicação, schema, rotas, UI e CI foram
-preservados. A fase 2 acrescentou os arquivos de autenticação e testes descritos
-no início deste relatório. LICENSE e Git permanecem preservados; não houve
-arquivos financeiros, staging, commit, push ou deploy.
+preservados. As fases 2 e 3 acrescentaram os arquivos descritos no início deste
+relatório. LICENSE e Git permanecem preservados; não houve staging, commit, push
+ou deploy nesta fase.
 
 ## Próximos passos mapeados
 
-1. Ativar Node 24 com seu npm e iniciar o contêiner MySQL no desenvolvimento.
-2. Antes da fase financeira, aprovar os conceitos de conta e categoria: nome do
-   modelo que evita `Account` do Better Auth, moeda, tipos, saldo inicial ou
-   derivado, categorias de receita/despesa, arquivamento e exclusão.
-3. Implementar contas e categorias com Zod no servidor, sessão validada, filtro
-   obrigatório pelo dono, DTOs explícitos e testes entre dois usuários. Revisar
-   o SQL e confirmar o banco antes da próxima migration.
-4. Projetar transações com `DECIMAL(19,2)`, data financeira `DATE`, timestamps UTC,
+1. Manter Node 24 com seu npm e iniciar o contêiner MySQL no desenvolvimento.
+2. Projetar transações com `DECIMAL(19,2)`, data financeira `DATE`, timestamps UTC,
    convenção de sinais, transferências e regras de edição/exclusão. Comprovar que
    conta e categoria pertencem à sessão em toda operação.
-5. Construir o dashboard a partir de agregações mensais no servidor. Entregar ao
+3. Construir o dashboard a partir de agregações mensais no servidor. Entregar ao
    Recharts 3 apenas DTOs serializáveis e cobrir estado vazio, virada do mês,
    responsividade e acessibilidade.
-6. Aprofundar IDOR, concorrência, entradas malformadas e sessões. Antes de escalar
+4. Aprofundar IDOR, concorrência, entradas malformadas e sessões. Antes de escalar
    para múltiplas instâncias, configurar proxies confiáveis e armazenamento
    compartilhado para rate limiting.
-7. Preparar produção apenas depois: HTTPS, segredos externos, backup/restauração
+5. Preparar produção apenas depois: HTTPS, segredos externos, backup/restauração
    testados, migrate deploy, observabilidade e recuperação/verificação de e-mail.
-8. Acompanhar releases estáveis que eliminem os pré-lançamentos transitivos e
+6. Acompanhar releases estáveis que eliminem os pré-lançamentos transitivos e
    tornem desnecessário o override; revalidar a cada atualização do Prisma.
 
 ## Fontes oficiais

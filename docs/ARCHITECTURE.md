@@ -9,8 +9,9 @@ Better Auth com adapter Prisma e Zod 4.
 
 Vitest e React Testing Library cobrem unidades e renderização. Playwright cobre
 fluxos completos com Chromium. ESLint, Prettier e prettier-plugin-tailwindcss
-padronizam o código. Recharts está reservado para a fase de dashboard, instalado
-por exigência da fundação, sem gráficos ou dados fictícios nesta etapa.
+padronizam o código. Recharts está reservado para a próxima evolução visual do
+dashboard. O primeiro relatório mensal usa indicadores e dados reais, sem gráficos
+ou dados fictícios.
 
 As versões exatas estão em `package.json` e a árvore reproduzível em
 `package-lock.json`. Prisma, `@prisma/client` e `@prisma/adapter-mariadb` permanecem
@@ -33,26 +34,29 @@ incluir uma versão corrigida oficialmente. Evidências em `docs/VALIDATION.md`.
 
 - `src/app`: rotas, layouts, composição de telas e Route Handlers.
 - `src/features/auth`: formulários, saída e schemas de entrada da autenticação.
-  Outros domínios serão criados conforme o escopo autorizado: `accounts`,
-  `categories`, `transactions`, `dashboard` e `profile`.
+  `src/features/accounts`, `src/features/categories`, `src/features/entries` e
+  `src/features/dashboard` contêm formulários, Server Actions, validação, cálculos
+  e acesso a dados de seus domínios. Perfil será criado apenas quando autorizado.
 - `src/components/ui`: componentes genéricos do shadcn/ui. Outros componentes
   compartilhados ficam em `src/components` apenas quando houver uso real.
 - `src/lib/auth`: opções, configuração do servidor e cliente Better Auth.
 - `src/lib/db`: conexão e singleton Prisma, exclusivamente no servidor.
 - `src/lib/env.ts`: validação tipada e acesso centralizado às variáveis.
-- `prisma`: schema e migrations revisadas. A inicial de autenticação está aplicada
-  no banco local confirmado.
+- `prisma`: schema e migrations revisadas. Autenticação, contas, categorias,
+  lançamentos, transferências e ajustes mensais estão aplicados no banco local
+  confirmado.
 - `src/generated/prisma`: client gerado, ignorado no Git e recriado no postinstall.
 - `tests/unit`, `tests/integration`, `tests/e2e`: testes separados por finalidade.
 
-`money.ts`, `dates.ts` e diretórios de features serão criados quando necessários.
-Não há placeholders vazios para forçar diretórios no Git.
+`src/lib/money.ts` normaliza e formata decimais por strings, sem `number`. Um módulo
+de datas só será criado quando houver comportamento compartilhado que o justifique.
 
 ## Fluxo planejado
 
 Interface → Server Action → Zod → autenticação/autorização → acesso a dados → MySQL.
 
-Esse fluxo se aplica às futuras operações financeiras. Cadastro, login e logout
+Esse fluxo é usado por contas, categorias, lançamentos e ajustes mensais. Cadastro,
+login e logout
 usam o cliente oficial Better Auth → Route Handler → middleware de validação Zod
 no servidor → adapter Prisma. Isso mantém o fluxo HTTP de cookies, verificação
 de origem/CSRF e rate limiting da biblioteca. Não há Server Actions de autenticação
@@ -60,7 +64,9 @@ nem necessidade do plugin `nextCookies` nesta integração.
 
 A sessão validada determina o usuário. Toda consulta privada deverá restringir
 os registros ao dono. IDs recebidos do navegador são entradas não confiáveis.
-Respostas ao cliente usam objetos explícitos, nunca modelos Prisma completos.
+Respostas ao cliente usam objetos explícitos, nunca modelos Prisma completos. As
+Server Actions validam `FormData` e IDs com Zod; a camada de dados repete sessão e
+combina `id` com `userId` nas alterações para impedir acesso entre usuários.
 
 ## Banco e ambiente
 
@@ -113,7 +119,15 @@ necessário definir armazenamento compartilhado e configurar os proxies confiáv
 conforme a infraestrutura real. Persistência, revogação e isolamento foram
 exercitados no MySQL local; essa evidência não substitui a validação futura da
 infraestrutura de produção.
-Não existe autorização de domínio implementada porque não há operações financeiras.
+Todos os registros financeiros são privados. Cada leitura filtra `userId`;
+criações ignoram qualquer identidade externa; edições, arquivamentos e remoções
+reversíveis usam `updateMany` com `id` e `userId` juntos. Registro ausente e
+registro de outro usuário produzem o mesmo resultado. Os DTOs financeiros
+transportam valores decimais e datas civis como strings. Referências de lançamentos
+exigem conta e categoria ativas do mesmo usuário. O saldo é derivado por agregações
+decimais e ignora registros removidos. O dashboard limita consultas pela sessão,
+transporta apenas DTOs e calcula o período com datas UTC que representam dias
+civis. Correções verificam a conta ativa do usuário antes do `upsert`.
 
 ## Testes e CI
 
@@ -130,10 +144,12 @@ desativa por padrão quando NODE_ENV=test.
 
 `npm run test:e2e:auth` executa a suíte separada em `tests/auth-e2e`, com Chromium,
 servidor de desenvolvimento na porta 3101 e o MySQL 8.4 do `.env`. Cria somente
-usuários temporários próprios e os remove ao finalizar. Verifica cadastro, hash
-da senha, sessão após reload, separação entre usuários, logout, replay de cookie
-revogado, senha incorreta e expiração. A suíte passou no MySQL 8.4.12 local e
-confirma banco, usuário e fuso da sessão. Traces dessa suíte estão desativados.
+usuários temporários próprios e os remove ao finalizar. Além da autenticação,
+verifica persistência precisa do saldo, data civil, unicidade, edição,
+arquivamento/restauração, lançamentos, transferências, saldo derivado e isolamento.
+O cenário de ajuste mensal também verifica saldo esperado, saldo real, diferença
+persistida e efeito no fechamento. A suíte passou no MySQL 8.4.12 local e confirma
+banco, usuário e fuso da sessão. Traces estão desativados.
 
 O CI executa npm ci (incluindo geração Prisma), formatação, lint, typecheck,
 unidades e build, sem credenciais. E2E fica disponível localmente e pode ser
