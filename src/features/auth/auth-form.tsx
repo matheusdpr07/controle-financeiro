@@ -104,11 +104,14 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         )}
       </div>
       {error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-xl bg-red-50 px-4 py-3 text-sm leading-5 text-destructive"
+        >
           {error}
         </p>
       )}
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? "Aguarde…" : isSignUp ? "Criar acesso" : "Entrar"}
       </Button>
     </form>

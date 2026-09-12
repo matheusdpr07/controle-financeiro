@@ -4,7 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Controle Financeiro",
-  description: "Fundação técnica do projeto Controle Financeiro.",
+  description:
+    "Organize contas, receitas, despesas e transferências para acompanhar sua vida financeira.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
