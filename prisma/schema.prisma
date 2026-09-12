@@ -8,16 +8,39 @@ datasource db {
   provider = "mysql"
 }
 
+enum FinancialAccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  INVESTMENT
+  OTHER
+}
+
+enum CategoryKind {
+  INCOME
+  EXPENSE
+}
+
+enum FinancialEntryKind {
+  INCOME
+  EXPENSE
+}
+
 model User {
-  id            String    @id
-  name          String    @db.Text
-  email         String    @db.VarChar(254)
-  emailVerified Boolean   @default(false)
-  image         String?   @db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id                 String              @id
+  name               String              @db.Text
+  email              String              @db.VarChar(254)
+  emailVerified      Boolean             @default(false)
+  image              String?             @db.Text
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  sessions           Session[]
+  accounts           Account[]
+  financialAccounts  FinancialAccount[]
+  categories         Category[]
+  financialEntries   FinancialEntry[]
+  financialTransfers FinancialTransfer[]
+  balanceAdjustments BalanceAdjustment[]
 
   @@unique([email])
   @@map("user")
@@ -69,4 +92,103 @@ model Verification {
 
   @@index([identifier(length: 191)])
   @@map("verification")
+}
+
+model FinancialAccount {
+  id                 String               @id @default(cuid())
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String               @db.VarChar(100)
+  type               FinancialAccountType
+  currencyCode       String               @default("BRL") @db.Char(3)
+  openingBalance     Decimal              @default(0) @db.Decimal(19, 2)
+  openingBalanceDate DateTime             @db.Date
+  archivedAt         DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  financialEntries   FinancialEntry[]
+  outgoingTransfers  FinancialTransfer[]  @relation("TransferSource")
+  incomingTransfers  FinancialTransfer[]  @relation("TransferDestination")
+  balanceAdjustments BalanceAdjustment[]
+
+  @@unique([userId, name])
+  @@index([userId, archivedAt])
+  @@map("financial_account")
+}
+
+model Category {
+  id               String           @id @default(cuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String           @db.VarChar(100)
+  kind             CategoryKind
+  archivedAt       DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  financialEntries FinancialEntry[]
+
+  @@unique([userId, kind, name])
+  @@index([userId, kind, archivedAt])
+  @@map("category")
+}
+
+model FinancialEntry {
+  id                 String             @id @default(cuid())
+  userId             String
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  financialAccountId String
+  financialAccount   FinancialAccount   @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
+  categoryId         String?
+  category           Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  kind               FinancialEntryKind
+  description        String             @db.VarChar(120)
+  amount             Decimal            @db.Decimal(19, 2)
+  occurredOn         DateTime           @db.Date
+  deletedAt          DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([userId, occurredOn, deletedAt])
+  @@index([financialAccountId, occurredOn])
+  @@index([categoryId])
+  @@map("financial_entry")
+}
+
+model FinancialTransfer {
+  id                   String           @id @default(cuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceAccountId      String
+  sourceAccount        FinancialAccount @relation("TransferSource", fields: [sourceAccountId], references: [id], onDelete: Cascade)
+  destinationAccountId String
+  destinationAccount   FinancialAccount @relation("TransferDestination", fields: [destinationAccountId], references: [id], onDelete: Cascade)
+  description          String           @db.VarChar(120)
+  amount               Decimal          @db.Decimal(19, 2)
+  occurredOn           DateTime         @db.Date
+  deletedAt            DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([userId, occurredOn, deletedAt])
+  @@index([sourceAccountId, occurredOn])
+  @@index([destinationAccountId, occurredOn])
+  @@map("financial_transfer")
+}
+
+model BalanceAdjustment {
+  id                 String           @id @default(cuid())
+  userId             String
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  financialAccountId String
+  financialAccount   FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
+  month              DateTime         @db.Date
+  expectedBalance    Decimal          @db.Decimal(19, 2)
+  actualBalance      Decimal          @db.Decimal(19, 2)
+  amount             Decimal          @db.Decimal(19, 2)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([financialAccountId, month])
+  @@index([userId, month])
+  @@map("balance_adjustment")
 }
