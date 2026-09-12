@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { randomBytes } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";

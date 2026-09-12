@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { expect, test } from "vitest";

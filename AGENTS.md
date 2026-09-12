@@ -14,7 +14,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Leia a documentação oficial atual e os guias locais do Next.js antes de alterar decisões ou APIs. Não troque bibliotecas sem autorização.
 - Use Node 24, npm, versões exatas e estáveis. Não instale dependências sem necessidade. Mantenha Prisma, client e adapter na mesma versão da linha 7; não migre para Prisma 8.
 - Preserve alterações anteriores, a licença e o Git. Não use sudo nem altere configurações globais. Não faça commit, push ou deploy sem solicitação.
-- Mantenha TypeScript estrito, sem `any`, poucos comentários e sem abstrações sem uso, barrel files ou arquivos genéricos como `utils.ts`.
+- Mantenha TypeScript estrito, sem `any` e sem comentários manuscritos no código. Preserve arquivos gerados e migrations já aplicadas. Não crie abstrações sem uso, barrel files ou arquivos genéricos como `utils.ts`.
 - Use Server Components por padrão e Client Components somente quando houver interação real.
 - Valide entradas externas com Zod no servidor. Mantenha Server Actions pequenas.
 - Em toda operação privada, verifique sessão e propriedade do registro. Nunca confie em `userId` vindo do navegador; derive-o da sessão validada.
