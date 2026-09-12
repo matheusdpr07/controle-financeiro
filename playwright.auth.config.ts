@@ -5,7 +5,8 @@ import { getServerEnv } from "./src/lib/env";
 config({ path: ".env", quiet: true });
 getServerEnv();
 
-const baseURL = "http://127.0.0.1:3101";
+const baseURL = process.env.AUTH_E2E_BASE_URL ?? "http://127.0.0.1:3101";
+const reuseExistingServer = process.env.AUTH_E2E_REUSE_SERVER === "true";
 
 export default defineConfig({
   testDir: "./tests/auth-e2e",
@@ -20,7 +21,7 @@ export default defineConfig({
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3101",
     url: `${baseURL}/entrar`,
-    reuseExistingServer: false,
+    reuseExistingServer,
     timeout: 120_000,
     env: {
       NODE_ENV: "development",
