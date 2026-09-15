@@ -272,9 +272,9 @@ seguinte comprovou a limpeza completa.
 
 As cinco diretivas de ambiente existentes nos testes foram removidas. O Vitest
 agora separa os projetos Node e jsdom em `vitest.config.mts`, preservando o mesmo
-comportamento sem comentários nos testes. `AGENTS.md` registra a regra para o
-trabalho futuro. Arquivos gerados pelo Next e comentários de migrations aplicadas
-anteriormente foram preservados para não alterar artefatos gerados ou checksums.
+comportamento sem comentários nos testes. Arquivos gerados pelo Next e comentários
+de migrations aplicadas anteriormente foram preservados para não alterar artefatos
+gerados ou checksums.
 
 ### Validações da fase 4
 
@@ -797,7 +797,7 @@ Ubuntu 24.04 no Fedora. O CI remoto não foi disparado, porque não houve push.
 
 ## Comandos de investigação e alteração
 
-- pwd; git status; git branch --show-current; git remote -v; leitura de AGENTS.md,
+- pwd; git status; git branch --show-current; git remote -v; leitura de
   package.json, lockfile, documentação e código instalado dos consumidores.
 - npm view prisma@7 version --json; npm view recharts@3 version --json;
   consultas de dependencies, peerDependencies, engines, dist-tags e versões.
