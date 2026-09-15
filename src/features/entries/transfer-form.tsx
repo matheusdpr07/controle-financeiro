@@ -134,8 +134,8 @@ export function TransferForm({
           role={state.status === "error" ? "alert" : "status"}
           className={
             state.status === "error"
-              ? "rounded-xl bg-red-50 px-4 py-3 text-sm text-destructive"
-              : "rounded-xl bg-[#e7efe9] px-4 py-3 text-sm text-[#315e4e]"
+              ? "rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive ring-1 ring-destructive/15"
+              : "rounded-xl bg-income/10 px-4 py-3 text-sm text-income-foreground ring-1 ring-income/20"
           }
         >
           {state.message}

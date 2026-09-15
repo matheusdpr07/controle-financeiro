@@ -73,9 +73,7 @@ export function AccountForm({ account }: { account?: FinancialAccountDTO }) {
       }}
     >
       {!account && (
-        <p className="text-sm font-semibold text-[#527064]">
-          Etapa {step} de 2
-        </p>
+        <p className="text-sm font-semibold text-primary">Etapa {step} de 2</p>
       )}
       {(account || step === 1) && (
         <div className="space-y-5">
@@ -190,8 +188,8 @@ export function AccountForm({ account }: { account?: FinancialAccountDTO }) {
           role={state.status === "error" ? "alert" : "status"}
           className={
             state.status === "error"
-              ? "rounded-xl bg-red-50 px-4 py-3 text-sm text-destructive"
-              : "rounded-xl bg-[#e7efe9] px-4 py-3 text-sm text-[#315e4e]"
+              ? "rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive ring-1 ring-destructive/15"
+              : "rounded-xl bg-income/10 px-4 py-3 text-sm text-income-foreground ring-1 ring-income/20"
           }
         >
           {state.message}

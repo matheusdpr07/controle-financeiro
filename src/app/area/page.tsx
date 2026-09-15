@@ -20,17 +20,17 @@ function Metric({
   tone?: "neutral" | "positive" | "negative" | "adjustment";
 }) {
   const colors = {
-    neutral: "text-[#173f35]",
-    positive: "text-[#267254]",
-    negative: "text-[#a3473d]",
-    adjustment: "text-[#7b6037]",
+    neutral: "bg-surface-raised text-foreground ring-border",
+    positive: "bg-income/10 text-income-foreground ring-income/20",
+    negative: "bg-expense/10 text-expense-foreground ring-expense/20",
+    adjustment: "bg-transfer/10 text-transfer-foreground ring-transfer/20",
   };
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-[0_10px_30px_rgba(23,63,53,0.05)] ring-1 ring-[#173f35]/8">
-      <dt className="text-sm font-medium text-[#6f7a75]">{label}</dt>
-      <dd
-        className={`mt-3 text-2xl font-semibold tracking-[-0.035em] ${colors[tone]}`}
-      >
+    <div
+      className={`rounded-3xl p-5 shadow-[0_10px_30px_var(--shadow-soft)] ring-1 ${colors[tone]}`}
+    >
+      <dt className="text-sm font-medium opacity-70">{label}</dt>
+      <dd className="mt-3 text-2xl font-semibold tracking-[-0.035em]">
         {formatBrlAmount(value)}
       </dd>
     </div>
@@ -39,26 +39,26 @@ function Metric({
 
 function Onboarding() {
   return (
-    <section className="overflow-hidden rounded-[2rem] bg-[#173f35] text-white shadow-[0_24px_65px_rgba(23,63,53,0.18)]">
+    <section className="overflow-hidden rounded-[2rem] bg-hero text-hero-foreground shadow-[0_24px_65px_var(--shadow-soft)] ring-1 ring-border/50">
       <div className="grid gap-10 p-7 sm:p-10 lg:grid-cols-[1fr_0.72fr] lg:items-end lg:p-14">
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold text-[#a9c9bc]">Etapa 1 de 2</p>
+          <p className="text-sm font-semibold text-hero-muted">Etapa 1 de 2</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-[-0.05em] sm:text-6xl">
             Comece pela conta que você já usa.
           </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-[#d6e5df]">
+          <p className="mt-5 max-w-xl text-base leading-7 text-hero-muted">
             Cadastre onde você organiza seu dinheiro. Em seguida, informe o
             saldo inicial para começar seu histórico financeiro.
           </p>
         </div>
-        <div className="rounded-3xl bg-white/10 p-6 ring-1 ring-white/15">
-          <p className="text-sm font-medium text-[#cfe0d9]">Próximo passo</p>
+        <div className="rounded-3xl bg-hero-foreground/8 p-6 ring-1 ring-hero-foreground/15">
+          <p className="text-sm font-medium text-hero-muted">Próximo passo</p>
           <p className="mt-2 text-xl font-semibold">
             Criar uma conta financeira
           </p>
           <Link
             href="/contas"
-            className="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-[#173f35] shadow-sm transition-transform hover:-translate-y-0.5 focus-visible:ring-3 focus-visible:ring-white/40 focus-visible:outline-none"
+            className="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-hero-foreground px-5 text-sm font-semibold text-hero shadow-sm transition-transform hover:-translate-y-0.5 focus-visible:ring-3 focus-visible:ring-hero-foreground/40 focus-visible:outline-none"
           >
             Começar agora
           </Link>
@@ -87,34 +87,34 @@ export default async function AreaPage({
           <>
             <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#527064]">
+                <p className="text-sm font-semibold text-primary">
                   Visão mensal
                 </p>
-                <h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em] text-[#173f35] sm:text-5xl">
+                <h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em] text-foreground sm:text-5xl">
                   Seu mês em equilíbrio.
                 </h1>
-                <p className="mt-4 text-base leading-7 text-[#66716c] first-letter:uppercase">
+                <p className="mt-4 text-base leading-7 text-muted-foreground first-letter:uppercase">
                   {dashboard.label}
                 </p>
               </div>
               <nav
                 aria-label="Navegação entre meses"
-                className="flex items-center rounded-2xl bg-white p-1 shadow-sm ring-1 ring-[#173f35]/8"
+                className="flex items-center rounded-2xl bg-surface-raised p-1 shadow-sm ring-1 ring-border"
               >
                 <Link
                   href={`/area?month=${dashboard.previousMonth}`}
                   aria-label="Mês anterior"
-                  className="grid size-10 place-items-center rounded-xl text-[#173f35] hover:bg-[#edf2ee] focus-visible:ring-3 focus-visible:ring-[#74a995]/35 focus-visible:outline-none"
+                  className="grid size-10 place-items-center rounded-xl text-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/35 focus-visible:outline-none"
                 >
                   ←
                 </Link>
-                <span className="min-w-36 px-3 text-center text-sm font-semibold text-[#30443c] first-letter:uppercase">
+                <span className="min-w-36 px-3 text-center text-sm font-semibold text-foreground first-letter:uppercase">
                   {dashboard.label}
                 </span>
                 <Link
                   href={`/area?month=${dashboard.nextMonth}`}
                   aria-label="Próximo mês"
-                  className="grid size-10 place-items-center rounded-xl text-[#173f35] hover:bg-[#edf2ee] focus-visible:ring-3 focus-visible:ring-[#74a995]/35 focus-visible:outline-none"
+                  className="grid size-10 place-items-center rounded-xl text-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/35 focus-visible:outline-none"
                 >
                   →
                 </Link>
@@ -144,19 +144,17 @@ export default async function AreaPage({
             <section aria-labelledby="accounts-month-title">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-[#527064]">
-                    Detalhes
-                  </p>
+                  <p className="text-sm font-semibold text-primary">Detalhes</p>
                   <h2
                     id="accounts-month-title"
-                    className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[#173f35]"
+                    className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-foreground"
                   >
                     Saldos por conta
                   </h2>
                 </div>
                 <Link
                   href="/lancamentos"
-                  className="rounded-xl bg-[#173f35] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#24594b] focus-visible:ring-3 focus-visible:ring-[#74a995]/40 focus-visible:outline-none"
+                  className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
                 >
                   Novo lançamento
                 </Link>
@@ -167,54 +165,54 @@ export default async function AreaPage({
                   {dashboard.accounts.map((account) => (
                     <li
                       key={account.id}
-                      className="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(23,63,53,0.05)] ring-1 ring-[#173f35]/8"
+                      className="rounded-3xl bg-surface-raised p-6 shadow-[0_10px_30px_var(--shadow-soft)] ring-1 ring-border"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="font-semibold text-[#173f35]">
+                          <p className="font-semibold text-foreground">
                             {account.name}
                           </p>
-                          <p className="mt-1 text-sm text-[#75807b]">
+                          <p className="mt-1 text-sm text-muted-foreground">
                             Saldo inicial{" "}
                             {formatBrlAmount(account.report.opening)}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-semibold tracking-[0.08em] text-[#7a847f] uppercase">
+                          <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
                             Saldo final
                           </p>
-                          <p className="mt-1 text-xl font-semibold tracking-[-0.03em] text-[#173f35]">
+                          <p className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
                             {formatBrlAmount(account.report.closing)}
                           </p>
                         </div>
                       </div>
-                      <dl className="mt-5 grid grid-cols-3 gap-3 border-y border-[#e4e8e4] py-4 text-sm">
+                      <dl className="mt-5 grid grid-cols-3 gap-3 border-y border-border py-4 text-sm">
                         <div>
-                          <dt className="text-[#7a847f]">Receitas</dt>
-                          <dd className="mt-1 font-semibold text-[#267254]">
+                          <dt className="text-muted-foreground">Receitas</dt>
+                          <dd className="mt-1 font-semibold text-income-foreground">
                             {formatBrlAmount(account.report.income)}
                           </dd>
                         </div>
                         <div>
-                          <dt className="text-[#7a847f]">Despesas</dt>
-                          <dd className="mt-1 font-semibold text-[#a3473d]">
+                          <dt className="text-muted-foreground">Despesas</dt>
+                          <dd className="mt-1 font-semibold text-expense-foreground">
                             {formatBrlAmount(account.report.expense)}
                           </dd>
                         </div>
                         <div>
-                          <dt className="text-[#7a847f]">Ajustes</dt>
-                          <dd className="mt-1 font-semibold text-[#7b6037]">
+                          <dt className="text-muted-foreground">Ajustes</dt>
+                          <dd className="mt-1 font-semibold text-transfer-foreground">
                             {formatBrlAmount(account.report.adjustments)}
                           </dd>
                         </div>
                       </dl>
                       {!account.archived && dashboard.canCorrect && (
                         <details className="group mt-4">
-                          <summary className="w-fit cursor-pointer list-none rounded-lg px-2 py-1 text-sm font-semibold text-[#527064] outline-none hover:bg-[#edf2ee] focus-visible:ring-3 focus-visible:ring-[#74a995]/35">
+                          <summary className="w-fit cursor-pointer list-none rounded-lg px-2 py-1 text-sm font-semibold text-primary outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/35">
                             Corrigir saldo inicial
                           </summary>
-                          <div className="mt-4 rounded-2xl bg-[#f7f8f5] p-4">
-                            <p className="mb-4 text-sm leading-6 text-[#66716c]">
+                          <div className="mt-4 rounded-2xl bg-surface p-4 ring-1 ring-border/70">
+                            <p className="mb-4 text-sm leading-6 text-muted-foreground">
                               Informe o saldo real no início do mês. A diferença
                               ficará registrada separadamente como ajuste.
                             </p>
@@ -234,25 +232,25 @@ export default async function AreaPage({
                   ))}
                 </ul>
               ) : (
-                <p className="mt-5 rounded-3xl border border-dashed border-[#ccd7d0] bg-white/50 px-6 py-10 text-center text-sm text-muted-foreground">
+                <p className="mt-5 rounded-3xl border border-dashed border-border bg-surface/60 px-6 py-10 text-center text-sm text-muted-foreground">
                   Nenhuma conta existia neste período.
                 </p>
               )}
             </section>
           </>
         )}
-        <section className="rounded-3xl border border-[#dfe4df] bg-white/70 px-6 py-5 sm:flex sm:items-center sm:justify-between sm:gap-8">
+        <section className="rounded-3xl border border-border bg-surface-raised/70 px-6 py-5 sm:flex sm:items-center sm:justify-between sm:gap-8">
           <div>
-            <h2 className="font-semibold text-[#173f35]">Acesso protegido</h2>
-            <p className="mt-1 text-sm leading-6 text-[#66716c]">
+            <h2 className="font-semibold text-foreground">Acesso protegido</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Seus dados financeiros pertencem ao acesso abaixo.
             </p>
           </div>
           <dl className="mt-4 min-w-0 sm:mt-0 sm:text-right">
-            <dt className="text-xs font-semibold tracking-[0.08em] text-[#7a847f] uppercase">
+            <dt className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
               E-mail
             </dt>
-            <dd className="mt-1 truncate text-sm font-medium text-[#30443c]">
+            <dd className="mt-1 truncate text-sm font-medium text-foreground">
               {dashboard.user.email}
             </dd>
           </dl>

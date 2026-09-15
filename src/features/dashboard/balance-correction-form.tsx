@@ -60,7 +60,7 @@ export function BalanceCorrectionForm({
           className={
             state.status === "error"
               ? "text-sm text-destructive"
-              : "text-sm font-medium text-[#315e4e]"
+              : "text-sm font-medium text-income-foreground"
           }
         >
           {state.message}
