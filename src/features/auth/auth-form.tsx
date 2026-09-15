@@ -106,7 +106,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       {error && (
         <p
           role="alert"
-          className="rounded-xl bg-red-50 px-4 py-3 text-sm leading-5 text-destructive"
+          className="rounded-xl bg-destructive/10 px-4 py-3 text-sm leading-5 text-destructive ring-1 ring-destructive/15"
         >
           {error}
         </p>

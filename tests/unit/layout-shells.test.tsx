@@ -1,11 +1,22 @@
 import { render, screen, within } from "@testing-library/react";
-import { expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { AuthShell } from "@/components/auth-shell";
 import { PrivateShell } from "@/components/private-shell";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
 }));
+
+beforeEach(() => {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  );
+});
 
 test("o shell privado expõe as seções e identifica a página atual", () => {
   render(
@@ -30,6 +41,9 @@ test("o shell privado expõe as seções e identifica a página atual", () => {
     within(navigation).getByRole("link", { name: "Lançamentos" }),
   ).toHaveAttribute("href", "/lancamentos");
   expect(screen.getByRole("button", { name: "Sair" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Tema automático" }),
+  ).toBeInTheDocument();
 });
 
 test("o shell de autenticação mantém o caminho alternativo de acesso", () => {
@@ -58,4 +72,7 @@ test("o shell de autenticação mantém o caminho alternativo de acesso", () => 
   expect(
     screen.getByRole("link", { name: "Controle Financeiro — início" }),
   ).toHaveAttribute("href", "/");
+  expect(
+    screen.getByRole("button", { name: "Tema automático" }),
+  ).toBeInTheDocument();
 });
