@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("renderiza a página inicial sem MySQL", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "dark" });
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
   await expect(page).toHaveTitle("Controle Financeiro");
@@ -16,24 +17,72 @@ test("renderiza a página inicial sem MySQL", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: "Começar agora" }),
   ).toHaveAttribute("href", "/cadastro");
-});
-
-test("mantém a página inicial utilizável em tela móvel", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-
   await expect(
     page.getByRole("heading", {
-      level: 1,
-      name: "Entenda para onde seu dinheiro vai.",
+      level: 2,
+      name: "Do saldo inicial ao fechamento.",
     }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Criar acesso" })).toBeVisible();
-
-  const dimensoes = await page.evaluate(() => ({
-    larguraVisivel: document.documentElement.clientWidth,
-    larguraTotal: document.documentElement.scrollWidth,
-  }));
-
-  expect(dimensoes.larguraTotal).toBe(dimensoes.larguraVisivel);
 });
+
+test("executa o movimento da landing sem erros no navegador", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.emulateMedia({
+    reducedMotion: "no-preference",
+    colorScheme: "dark",
+  });
+  await page.goto("/");
+
+  const orbit = page.locator("[data-orbit-stage]");
+  await page.mouse.move(1100, 320);
+  await expect
+    .poll(() =>
+      orbit.evaluate((element) => getComputedStyle(element).transform),
+    )
+    .not.toBe("none");
+
+  await page
+    .getByRole("heading", {
+      level: 2,
+      name: "A realidade muda. Seu histórico explica.",
+    })
+    .scrollIntoViewIfNeeded();
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+
+  expect(errors).toEqual([]);
+});
+
+for (const width of [320, 390, 1440]) {
+  test(`mantém a página inicial sem overflow em ${width}px`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width, height: width < 500 ? 844 : 1000 });
+    await page.goto("/");
+
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: "Entenda para onde seu dinheiro vai.",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Criar acesso" }),
+    ).toBeVisible();
+
+    const dimensoes = await page.evaluate(() => ({
+      larguraVisivel: document.documentElement.clientWidth,
+      larguraTotal: document.documentElement.scrollWidth,
+    }));
+
+    expect(dimensoes.larguraTotal).toBe(dimensoes.larguraVisivel);
+  });
+}

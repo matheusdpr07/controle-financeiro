@@ -174,3 +174,26 @@
     @apply bg-primary/20 text-foreground;
   }
 }
+
+[data-orbit-stage] {
+  transform: perspective(1000px) rotateX(var(--pointer-y, 0deg))
+    rotateY(var(--pointer-x, 0deg));
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body,
+  [data-slot="card"],
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="select"] {
+    transition-duration: 180ms;
+    transition-property: background-color, border-color, color, box-shadow;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-orbit-stage] {
+    transform: none;
+  }
+}
