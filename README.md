@@ -2,8 +2,8 @@
 
 Aplicação financeira pessoal em desenvolvimento. Cadastro, entrada, saída,
 contas financeiras, categorias e lançamentos estão implementados em uma área
-protegida pela sessão. O fluxo foi validado em MySQL 8.4 LTS. O dashboard pertence
-à próxima fase.
+protegida pela sessão. O dashboard mensal acompanha saldo inicial, ajustes,
+receitas, despesas e saldo final. O fluxo foi validado em MySQL 8.4 LTS.
 
 O produto é um organizador de informações financeiras pessoais. Ele registra os
 dados informados pelo usuário e calcula visões para acompanhamento. Não mantém
@@ -29,6 +29,17 @@ A validação desta entrega usa Node 24.20.0 e npm 11.19.1 em ambiente isolado.
 O Node/npm globais não foram alterados. No Fedora deste ambiente, `/usr/bin/npm`
 executa explicitamente Node 22; selecionar apenas outro `node` no PATH não basta.
 Use o npm fornecido junto com sua instalação do Node 24.
+
+## Tema e interface
+
+A interface oferece os temas automático, claro e escuro em todas as rotas. O
+botão no cabeçalho alterna entre as três preferências e mantém a escolha neste
+navegador. Na primeira visita, o modo automático acompanha o tema do sistema.
+
+A página inicial usa uma composição SVG própria e Anime.js para movimentos leves.
+Com a preferência de redução de movimento ativada no sistema, o conteúdo aparece
+diretamente no estado final. Cadastro, entrada e toda a área privada continuam
+funcionais sem depender dessas animações.
 
 ## Comandos
 
@@ -102,7 +113,7 @@ podman run --detach --name controle-financeiro-mysql --restart=unless-stopped \
   container-registry.oracle.com/mysql/community-server:8.4@sha256:7dcc4add9183664de3a214daf85a50c3ba6cccfd7534f700b6561bf5b41885be
 ```
 
-Quatro migrations estão aplicadas. Elas criam os modelos Better Auth, contas,
+Cinco migrations estão aplicadas. Elas criam os modelos Better Auth, contas,
 categorias, lançamentos e transferências internas, além de ajustar as cascatas de
 remoção integral do usuário. `Account` continua sendo credencial de autenticação.
 Não use reset; toda migration futura continua exigindo revisão do SQL e confirmação
@@ -143,6 +154,8 @@ comando offline; a configuração real do servidor exige URL e segredo válidos.
 - Vitest 4.1.11 respeita os peer dependencies do Better Auth; Vitest 5 foi rejeitado.
 - Recharts 3.10.1 substitui a linha 2 por solicitação explícita. Redux e React Redux
   são dependências internas do Recharts; a aplicação não cria uma store global.
+- Anime.js 4.5.0 anima somente a página inicial. Os vetores são locais, o conteúdo
+  existe antes do movimento e `prefers-reduced-motion` desativa a animação.
 - CLI `auth` 1.6.22 gera os modelos básicos usados por Better Auth 1.7.3. O CLI
   1.7 inclui c12 beta; por isso foi evitado. Novos plugins exigem nova revisão.
 - Os overrides anteriores de mariadb, mysql2 e lodash foram preservados. Um override

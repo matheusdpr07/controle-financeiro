@@ -1,4 +1,54 @@
-# Validação da fundação, dependências, domínio e interface — 12/09/2026
+# Validação da fundação, dependências, domínio e interface — 15/09/2026
+
+## Temas e página inicial animada
+
+As sete rotas atuais usam os temas automático, claro e escuro. A primeira visita
+segue o sistema operacional; uma escolha explícita é armazenada no navegador e
+permanece durante a navegação. Uma inicialização no layout aplica o tema antes da
+primeira pintura. O controle compartilhado aparece na página inicial, na
+autenticação e na área privada.
+
+Os componentes deixaram de depender de cores claras fixas. Fundo, superfícies,
+texto, borda, foco, receita, despesa, transferência e painel editorial usam tokens
+semânticos em OKLCH. Rótulos e sinais monetários continuam presentes, portanto a
+cor não é o único meio de identificar um tipo financeiro. Nenhuma regra, Server
+Action, DTO, schema, modelo ou migration mudou nesta etapa.
+
+A página inicial foi reconstruída com rolagem natural, hierarquia tipográfica,
+cinco blocos editoriais e um SVG financeiro original. Anime.js 4.5.0 foi adicionado
+como dependência direta, exata e estável. O controlador cliente fica restrito à
+landing, desfaz seu escopo ao desmontar, pausa movimento contínuo quando a página
+fica oculta e retorna antes de iniciar quando `prefers-reduced-motion` pede
+redução. Conteúdo, links e vetores existem em seu estado final sem a animação.
+
+### Validações de 15/09/2026
+
+| Verificação            | Resultado                                                                 |
+| ---------------------- | ------------------------------------------------------------------------- |
+| Node                   | 24.20.0 usado nos comandos finais.                                        |
+| Formatação             | `npm run format:check` passou.                                            |
+| Lint                   | `npm run lint` passou sem avisos.                                         |
+| Typecheck              | `npm run typecheck` passou com tipos do Next.js.                          |
+| Vitest                 | 91 testes passaram em 21 arquivos.                                        |
+| Playwright público     | 6 testes passaram, incluindo 320, 390 e 1440 px e movimento ativo.        |
+| Playwright autenticado | 1 fluxo completo passou no MySQL 8.4 local em 17,7 segundos.              |
+| Build Webpack          | Passou; página inicial estática e rotas privadas dinâmicas foram geradas. |
+| Auditoria npm          | Zero vulnerabilidades conhecidas.                                         |
+| Anime.js               | `npm ls animejs --depth=0` confirmou uma única versão 4.5.0.              |
+| Revisão visual         | 28 capturas temporárias: 7 rotas × 2 temas × desktop e celular.           |
+| Banco                  | MySQL 8.4 permaneceu ativo; nenhuma migration foi criada ou executada.    |
+
+A revisão visual usou 1440 × 1000 e 390 × 844. Foram conferidos contraste,
+hierarquia, navegação, foco, formulários, estados vazios, indicadores mensais e
+ausência de overflow horizontal. O teste visual criou um usuário isolado, uma
+conta e uma categoria e removeu esse usuário e todos os registros relacionados ao
+final. As capturas ficaram em `/tmp` e não fazem parte do repositório.
+
+O build inicialmente mostrou `Could not parse output from TypeScript's
+--showConfig` dentro do sandbox. A investigação reproduziu `EPERM` ao Node tentar
+abrir o subprocesso TypeScript; o mesmo `tsc --showConfig` produziu JSON válido
+fora dessa restrição. O build final passou com Node 24 fora do sandbox, sem contorno
+em `next.config.ts` e sem mudança de configuração.
 
 ## Dashboard mensal, saldo inicial e diagnóstico de autenticação
 
@@ -673,6 +723,7 @@ node_modules. Todas coincidem com o manifesto do projeto.
 | `@better-auth/prisma-adapter` | 1.7.3   | Aplicação  |
 | `@prisma/adapter-mariadb`     | 7.10.0  | Aplicação  |
 | `@prisma/client`              | 7.10.0  | Aplicação  |
+| `animejs`                     | 4.5.0   | Aplicação  |
 | `better-auth`                 | 1.7.3   | Aplicação  |
 | `class-variance-authority`    | 0.7.1   | Aplicação  |
 | `cn`                          | 0.2.6   | Aplicação  |

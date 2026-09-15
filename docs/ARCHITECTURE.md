@@ -9,9 +9,9 @@ Better Auth com adapter Prisma e Zod 4.
 
 Vitest e React Testing Library cobrem unidades e renderização. Playwright cobre
 fluxos completos com Chromium. ESLint, Prettier e prettier-plugin-tailwindcss
-padronizam o código. Recharts está reservado para a próxima evolução visual do
-dashboard. O primeiro relatório mensal usa indicadores e dados reais, sem gráficos
-ou dados fictícios.
+padronizam o código. Anime.js 4.5.0 fica restrito ao movimento da página inicial.
+Recharts está reservado para a próxima evolução visual do dashboard. O primeiro
+relatório mensal usa indicadores e dados reais, sem gráficos ou dados fictícios.
 
 As versões exatas estão em `package.json` e a árvore reproduzível em
 `package-lock.json`. Prisma, `@prisma/client` e `@prisma/adapter-mariadb` permanecem
@@ -22,6 +22,7 @@ exige revisão explícita de compatibilidade e autorização, inclusive no Depen
 Vitest usa a linha 4, aceita pelos peer dependencies do Better Auth. Recharts usa
 3.10.1, atualizado por solicitação explícita. Redux, React Redux e Redux Toolkit
 são dependências internas do Recharts; não há store global criada pela aplicação.
+Anime.js usa a versão estável exata 4.5.0 e não participa das telas privadas.
 
 O override de `deepmerge-ts` para 8.0.2 fica limitado a `@prisma/config@7.10.0`.
 Sua compatibilidade foi verificada no carregamento da configuração do projeto
@@ -37,6 +38,10 @@ incluir uma versão corrigida oficialmente. Evidências em `docs/VALIDATION.md`.
   `src/features/accounts`, `src/features/categories`, `src/features/entries` e
   `src/features/dashboard` contêm formulários, Server Actions, validação, cálculos
   e acesso a dados de seus domínios. Perfil será criado apenas quando autorizado.
+- `src/features/theme`: preferência automática, clara ou escura, inicialização
+  anterior à pintura e controle cliente compartilhado.
+- `src/features/landing`: vetor SVG original e controlador de movimento da página
+  pública, sem acesso a banco ou autenticação.
 - `src/components/ui`: componentes genéricos do shadcn/ui. Outros componentes
   compartilhados ficam em `src/components` apenas quando houver uso real.
 - `src/lib/auth`: opções, configuração do servidor e cliente Better Auth.
@@ -46,10 +51,32 @@ incluir uma versão corrigida oficialmente. Evidências em `docs/VALIDATION.md`.
   lançamentos, transferências e ajustes mensais estão aplicados no banco local
   confirmado.
 - `src/generated/prisma`: client gerado, ignorado no Git e recriado no postinstall.
-- `tests/unit`, `tests/integration`, `tests/e2e`: testes separados por finalidade.
+- `tests/unit`, `tests/integration`, `tests/e2e` e `tests/auth-e2e`: testes
+  separados por finalidade.
 
 `src/lib/money.ts` normaliza e formata decimais por strings, sem `number`. Um módulo
 de datas só será criado quando houver comportamento compartilhado que o justifique.
+
+## Tema e movimento
+
+O layout raiz executa uma inicialização pequena antes da primeira pintura. Ela lê
+`controle-financeiro-theme` do armazenamento local, resolve `system`, `light` ou
+`dark` e aplica a classe e o `color-scheme` correspondentes no elemento HTML. O
+controle de tema usa `useSyncExternalStore`, acompanha mudanças do sistema apenas
+no modo automático e persiste escolhas explícitas. Shells e páginas permanecem
+Server Components; somente o controle é cliente.
+
+Os temas compartilham tokens CSS semânticos para fundo, superfícies, texto, borda,
+receita, despesa, transferência e painel editorial. Assim, o tipo financeiro
+continua identificado por rótulo e sinal, além da cor. Formulários e Server Actions
+não recebem estado de tema.
+
+O controlador Anime.js existe somente em `src/features/landing`. Ele inicia após
+a hidratação, limita as animações a transformações, opacidade e traços do SVG,
+pausa movimentos contínuos quando a página fica oculta e desfaz o escopo ao
+desmontar. `prefers-reduced-motion: reduce` retorna antes de criar o escopo. Todo o
+texto e todos os links são renderizados no servidor e permanecem disponíveis sem
+movimento.
 
 ## Fluxo planejado
 

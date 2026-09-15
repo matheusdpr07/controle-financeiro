@@ -15,8 +15,9 @@
 6. **Testes de segurança e isolamento:** aprofundar cenários entre usuários,
    entradas inválidas, acesso indevido, sessão expirada e revogação. Validação e
    isolamento já são exigências desde a primeira operação privada.
-7. **Refinamento visual:** aperfeiçoar acessibilidade, responsividade e estados
-   de interação após estabilizar o comportamento.
+7. **Concluída — Identidade visual e temas:** temas automático, claro e escuro,
+   tokens semânticos, landing SVG animada, redução de movimento, responsividade e
+   estados de interação aplicados às sete rotas atuais.
 
 As quatro primeiras fases estão validadas no MySQL 8.4.12 local. A fase 3 usa o
 modelo `FinancialAccount`, BRL, saldo de abertura em `DECIMAL(19,2)`, data civil,
@@ -37,6 +38,11 @@ linhas separadas. A correção registra a diferença sem reescrever lançamentos
 formulário de conta apresenta identificação e saldo inicial em duas etapas, e os
 campos monetários exibem reais durante a digitação. Cartão de crédito continua
 adiado até o desenho próprio de faturas e passivos.
+
+O refinamento visual usa uma linguagem grafite-verde com superfícies semânticas.
+Receita, despesa e transferência mantêm rótulos textuais e cores próprias. A
+página inicial apresenta o fluxo mensal com vetores originais e movimento
+opcional; nenhuma imagem externa ou dado financeiro fictício foi incorporado.
 
 As transações e transferências desse roadmap são registros para controle pessoal.
 O projeto não executará movimentação de dinheiro, pagamentos ou serviços bancários.
