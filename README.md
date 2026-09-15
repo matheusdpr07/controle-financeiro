@@ -41,6 +41,10 @@ Com a preferência de redução de movimento ativada no sistema, o conteúdo apa
 diretamente no estado final. Cadastro, entrada e toda a área privada continuam
 funcionais sem depender dessas animações.
 
+Em telas de desktop com mouse, um gesto vertical da roda avança ou retorna uma
+seção completa da página inicial. Gestos adicionais são aguardados até o término
+da transição. Celular e telas menores preservam a rolagem nativa.
+
 ## Comandos
 
 | Comando                             | Finalidade                                                                              |

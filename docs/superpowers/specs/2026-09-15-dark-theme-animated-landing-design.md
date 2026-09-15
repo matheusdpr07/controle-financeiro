@@ -62,8 +62,10 @@ indisponível, a aplicação continuará usando a preferência do sistema.
 
 ## Página inicial
 
-A página inicial terá rolagem natural e seções editoriais amplas. O conteúdo será
-visível e navegável antes de qualquer animação.
+A página inicial terá seções editoriais amplas. Em desktop com mouse, um gesto
+vertical forte avançará ou retornará um painel completo; toque e telas menores
+manterão rolagem natural. O conteúdo será visível e navegável antes de qualquer
+animação.
 
 ### Primeira dobra
 
@@ -86,8 +88,9 @@ receitas, despesas e saldo poderão aparecer quando ajudarem a explicar o produt
 4. `Corrija seu saldo`: comparação visual entre saldo esperado e saldo informado.
 5. Encerramento com chamada clara para cadastro e acesso.
 
-As seções alternarão composição e posição dos elementos sem bloquear a rolagem.
-Em telas pequenas, texto e ações aparecem antes do elemento decorativo.
+As seções alternarão composição e posição dos elementos. Durante uma transição no
+desktop, novos gestos serão bloqueados até o fim do deslocamento para evitar saltos
+múltiplos. Em telas pequenas, texto e ações aparecem antes do elemento decorativo.
 
 ## Movimento com Anime.js
 

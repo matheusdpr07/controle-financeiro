@@ -14,12 +14,13 @@ semânticos em OKLCH. Rótulos e sinais monetários continuam presentes, portant
 cor não é o único meio de identificar um tipo financeiro. Nenhuma regra, Server
 Action, DTO, schema, modelo ou migration mudou nesta etapa.
 
-A página inicial foi reconstruída com rolagem natural, hierarquia tipográfica,
-cinco blocos editoriais e um SVG financeiro original. Anime.js 4.5.0 foi adicionado
-como dependência direta, exata e estável. O controlador cliente fica restrito à
-landing, desfaz seu escopo ao desmontar, pausa movimento contínuo quando a página
-fica oculta e retorna antes de iniciar quando `prefers-reduced-motion` pede
-redução. Conteúdo, links e vetores existem em seu estado final sem a animação.
+A página inicial foi reconstruída com rolagem guiada por seções no desktop,
+hierarquia tipográfica, cinco blocos editoriais e um SVG financeiro original.
+Anime.js 4.5.0 foi adicionado como dependência direta, exata e estável. O
+controlador cliente fica restrito à landing, desfaz seu escopo ao desmontar, pausa
+movimento contínuo quando a página fica oculta e retorna antes de iniciar animações
+quando `prefers-reduced-motion` pede redução. Conteúdo, links e vetores existem em
+seu estado final sem a animação. Em celular, a rolagem permanece nativa.
 
 ### Validações de 15/09/2026
 
@@ -29,8 +30,8 @@ redução. Conteúdo, links e vetores existem em seu estado final sem a animaç�
 | Formatação             | `npm run format:check` passou.                                            |
 | Lint                   | `npm run lint` passou sem avisos.                                         |
 | Typecheck              | `npm run typecheck` passou com tipos do Next.js.                          |
-| Vitest                 | 91 testes passaram em 21 arquivos.                                        |
-| Playwright público     | 6 testes passaram, incluindo 320, 390 e 1440 px e movimento ativo.        |
+| Vitest                 | 92 testes passaram em 21 arquivos.                                        |
+| Playwright público     | 7 testes passaram, incluindo rolagem por gesto, 320, 390 e 1440 px.       |
 | Playwright autenticado | 1 fluxo completo passou no MySQL 8.4 local em 17,7 segundos.              |
 | Build Webpack          | Passou; página inicial estática e rotas privadas dinâmicas foram geradas. |
 | Auditoria npm          | Zero vulnerabilidades conhecidas.                                         |
@@ -43,6 +44,11 @@ hierarquia, navegação, foco, formulários, estados vazios, indicadores mensais
 ausência de overflow horizontal. O teste visual criou um usuário isolado, uma
 conta e uma categoria e removeu esse usuário e todos os registros relacionados ao
 final. As capturas ficaram em `/tmp` e não fazem parte do repositório.
+
+O teste de rolagem usa uma janela de 1440 × 1000 e movimento ativo. Um único evento
+de roda posicionou a segunda seção a 72 px do topo, respeitando o cabeçalho fixo;
+um evento no sentido contrário retornou a página ao início. O teste unitário
+também confirmou troca imediata com redução de movimento.
 
 O build inicialmente mostrou `Could not parse output from TypeScript's
 --showConfig` dentro do sandbox. A investigação reproduziu `EPERM` ao Node tentar

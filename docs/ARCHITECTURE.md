@@ -78,6 +78,12 @@ desmontar. `prefers-reduced-motion: reduce` retorna antes de criar o escopo. Tod
 texto e todos os links são renderizados no servidor e permanecem disponíveis sem
 movimento.
 
+Um segundo efeito do mesmo componente controla a passagem entre painéis apenas em
+telas a partir de 1024 px, com altura mínima de 650 px e ponteiro preciso. Um gesto
+vertical forte seleciona a seção adjacente e bloqueia novos gestos até `scrollend`
+ou até o limite de segurança. Movimento reduzido troca o painel sem suavização;
+toque, telas menores e gestos horizontais permanecem nativos.
+
 ## Fluxo planejado
 
 Interface → Server Action → Zod → autenticação/autorização → acesso a dados → MySQL.

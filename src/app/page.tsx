@@ -64,7 +64,10 @@ export default function Home() {
       </header>
 
       <main id="conteudo">
-        <section className="relative isolate min-h-[calc(100svh-4.5rem)] overflow-hidden">
+        <section
+          data-scroll-panel
+          className="relative isolate min-h-[calc(100svh-4.5rem)] overflow-hidden"
+        >
           <div
             aria-hidden="true"
             className="absolute -top-40 right-[-12rem] -z-10 size-[38rem] rounded-full bg-primary/12 blur-3xl"
@@ -129,6 +132,7 @@ export default function Home() {
         <section
           id="como-funciona"
           data-motion-section
+          data-scroll-panel
           aria-labelledby="month-title"
           className="relative overflow-hidden bg-hero text-hero-foreground"
         >
@@ -186,7 +190,11 @@ export default function Home() {
           </div>
         </section>
 
-        <section data-motion-section aria-labelledby="accounts-title">
+        <section
+          data-motion-section
+          data-scroll-panel
+          aria-labelledby="accounts-title"
+        >
           <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-2 lg:gap-24 lg:px-10 lg:py-36">
             <div
               data-section-reveal
@@ -236,6 +244,7 @@ export default function Home() {
 
         <section
           data-motion-section
+          data-scroll-panel
           aria-labelledby="entries-title"
           className="border-y border-border bg-surface"
         >
@@ -279,7 +288,11 @@ export default function Home() {
           </div>
         </section>
 
-        <section data-motion-section aria-labelledby="correction-title">
+        <section
+          data-motion-section
+          data-scroll-panel
+          aria-labelledby="correction-title"
+        >
           <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-2 lg:gap-24 lg:px-10 lg:py-36">
             <div
               data-section-reveal
@@ -333,6 +346,7 @@ export default function Home() {
 
         <section
           data-motion-section
+          data-scroll-panel
           className="px-5 pb-20 sm:px-8 sm:pb-28 lg:px-10"
         >
           <div

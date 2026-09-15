@@ -3,7 +3,73 @@
 import { useEffect } from "react";
 import { animate, createScope, stagger, svg } from "animejs";
 
+const sectionScrollQuery =
+  "(min-width: 1024px) and (min-height: 650px) and (pointer: fine)";
+
 export function LandingMotion() {
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>("[data-landing-root]");
+    if (!root) return;
+
+    const sectionScroll = matchMedia(sectionScrollQuery);
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    let locked = false;
+    let unlockTimer = 0;
+
+    const unlock = () => {
+      locked = false;
+      window.clearTimeout(unlockTimer);
+    };
+    const handleWheel = (event: WheelEvent) => {
+      if (
+        !sectionScroll.matches ||
+        locked ||
+        event.ctrlKey ||
+        Math.abs(event.deltaY) < 60 ||
+        Math.abs(event.deltaX) > Math.abs(event.deltaY)
+      ) {
+        return;
+      }
+
+      const panels = Array.from(
+        root.querySelectorAll<HTMLElement>("[data-scroll-panel]"),
+      );
+      if (panels.length < 2) return;
+
+      const headerOffset =
+        root.querySelector<HTMLElement>("header")?.getBoundingClientRect()
+          .height ?? 0;
+      const currentIndex = panels.reduce(
+        (closest, panel, index) =>
+          Math.abs(panel.getBoundingClientRect().top - headerOffset) <
+          Math.abs(panels[closest].getBoundingClientRect().top - headerOffset)
+            ? index
+            : closest,
+        0,
+      );
+      const nextIndex = currentIndex + (event.deltaY > 0 ? 1 : -1);
+      const nextPanel = panels[nextIndex];
+      if (!nextPanel) return;
+
+      event.preventDefault();
+      locked = true;
+      nextPanel.scrollIntoView({
+        behavior: reducedMotion.matches ? "auto" : "smooth",
+        block: "start",
+      });
+      unlockTimer = window.setTimeout(unlock, reducedMotion.matches ? 0 : 900);
+    };
+
+    root.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("scrollend", unlock);
+
+    return () => {
+      root.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("scrollend", unlock);
+      window.clearTimeout(unlockTimer);
+    };
+  }, []);
+
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 

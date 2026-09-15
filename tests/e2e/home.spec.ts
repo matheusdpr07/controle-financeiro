@@ -60,6 +60,26 @@ test("executa o movimento da landing sem erros no navegador", async ({
   expect(errors).toEqual([]);
 });
 
+test("avança e retorna uma seção com um gesto da roda", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+
+  const monthSection = page.locator("[data-scroll-panel]").nth(1);
+  await page.mouse.move(720, 500);
+  await page.mouse.wheel(0, 120);
+  await expect
+    .poll(() =>
+      monthSection.evaluate((element) =>
+        Math.abs(element.getBoundingClientRect().top - 72),
+      ),
+    )
+    .toBeLessThan(5);
+
+  await page.mouse.wheel(0, -120);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
+});
+
 for (const width of [320, 390, 1440]) {
   test(`mantém a página inicial sem overflow em ${width}px`, async ({
     page,
